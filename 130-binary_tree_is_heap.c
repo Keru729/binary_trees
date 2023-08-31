@@ -1,142 +1,61 @@
 #include "binary_trees.h"
 
-/**
- * binary_tree_height - Function that measures the height of a binary tree
- * @tree: tree to go through
- * Return: the height
- */
-
-size_t binary_tree_height(const binary_tree_t *tree)
-{
-	size_t l = 0;
-	size_t r = 0;
-
-	if (tree == NULL)
-	{
-		return (0);
-	}
-	else
-	{
-		if (tree->left == NULL && tree->right == NULL)
-			return (tree->parent != NULL);
-		if (tree)
-		{
-			l = tree->left ? 1 + binary_tree_height(tree->left) : 0;
-			r = tree->right ? 1 + binary_tree_height(tree->right) : 0;
-		}
-		return ((l > r) ? l : r);
-		}
-}
+int get_total_nodes(const binary_tree_t *tree);
+int is_b_heap(const binary_tree_t *tree, int index,
+			  int max_index, int max_val);
 
 /**
- * binary_tree_balance - Measures balance factor of a binary tree
- * @tree: tree to go through
- * Return: balanced factor
- */
-int binary_tree_balance(const binary_tree_t *tree)
-{
-	int right = 0, left = 0, total = 0;
-
-	if (tree)
-	{
-		left = ((int)binary_tree_height(tree->left));
-		right = ((int)binary_tree_height(tree->right));
-		total = left - right;
-	}
-	return (total);
-}
-
-/**
- * tree_is_perfect - function that says if a tree is perfect or not
- * it has to be the same quantity of levels in left as right, and also
- * each node has to have 2 nodes or none
- * @tree: tree to check
- * Return: 0 if is not a perfect or other number that is the level of height
- */
-int tree_is_perfect(const binary_tree_t *tree)
-{
-	int l = 0, r = 0;
-
-	if (tree->left && tree->right)
-	{
-		l = 1 + tree_is_perfect(tree->left);
-		r = 1 + tree_is_perfect(tree->right);
-		if (r == l && r != 0 && l != 0)
-			return (r);
-		return (0);
-	}
-	else if (!tree->left && !tree->right)
-	{
-		return (1);
-	}
-	else
-	{
-		return (0);
-	}
-}
-
-/**
- * binary_tree_is_perfect - perfect or not a tree
- * @tree: tree to check
- * Return: 1 is it is or 0 if not
- */
-int binary_tree_is_perfect(const binary_tree_t *tree)
-{
-	int result = 0;
-
-	if (tree == NULL)
-	{
-		return (0);
-	}
-	else
-	{
-		result = tree_is_perfect(tree);
-		if (result != 0)
-		{
-			return (1);
-		}
-		return (0);
-	}
-}
-
-/**
- * binary_tree_is_heap - checks if a binary tree is a valid Max Binary Heap
- * @tree: tree to check
- * Return: 1 is it is or 0 if not
+ * binary_tree_is_heap - Checks if a binary tree is a valid Max Binary Heap
+ *
+ * @tree: Pointer to the root node of the tree to check
+ *
+ * Return: 1 if tree is a valid Max Binary Heap, and 0 otherwise
  */
 int binary_tree_is_heap(const binary_tree_t *tree)
 {
-	int bval;
+	int nodes;
 
-	if (tree == NULL)
-	{
+	if (!tree)
 		return (0);
-	}
-	if (tree->left && tree->left->n > tree->n)
-	{
+	nodes = get_total_nodes(tree);
+	return (is_b_heap(tree, 0, nodes - 1, tree->n));
+}
+
+/**
+ * get_total_nodes - Counts the total number of nodes in a binary tree
+ *
+ * @tree: Pointer to the root node of the tree to count the number of nodes
+ *
+ * Return: The total number of nodes in the tree
+ */
+int get_total_nodes(const binary_tree_t *tree)
+{
+	if (!tree)
 		return (0);
-	}
-	if (tree->right && tree->right->n > tree->n)
-	{
-		return (0);
-	}
-	if (binary_tree_is_perfect(tree))
-	{
+	return (1 + get_total_nodes(tree->left) + get_total_nodes(tree->right));
+}
+
+/**
+ * is_b_heap - Checks if a binary tree is a valid Max Binary Heap
+ * Description: A binary tree is Max Binary Heap if:
+ * - It is a complete tree (All levels are completely filled except possibly
+ *   the last level and the last level has all keys as left as possible).
+ * - Every node is greater than or equal to its children.
+ *
+ * @tree: Pointer to the root node of the tree to check
+ * @index: Index of the current node
+ * @max_index: Max index of the tree
+ * @max_val: Max value of the tree
+ *
+ * Return: 1 if tree is a valid Max Binary Heap, and 0 otherwise
+ */
+int is_b_heap(const binary_tree_t *tree, int index,
+			  int max_index, int max_val)
+{
+	if (!tree)
 		return (1);
-	}
-	bval = binary_tree_balance(tree);
-	if (bval == 0)
-	{
-		return (binary_tree_is_perfect(tree->left)
-			&& binary_tree_is_heap(tree->right));
-	}
-	if (bval == 1)
-	{
-		return (binary_tree_is_heap(tree->left)
-			&& binary_tree_is_perfect(tree->right));
-	}
-	else
-	{
+	if (index > max_index || tree->n > max_val)
 		return (0);
-	}
+	return (is_b_heap(tree->left, 2 * index + 1, max_index, tree->n) &&
+			is_b_heap(tree->right, 2 * index + 2, max_index, tree->n));
 }
